@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <form action="" method="post" novalidate>
+        {% if errors.email is defined %}
+        <div class="alert alert-error">
+            {{ errors.email }}
+        </div>
+        {% endif %}
+        <div>
+            <input type="email" name="email" value="{{ formData.email }}" required>
+        </div>
+        {% if errors.subject is defined %}
+        <div class="error">
+            {{ errors.subject }}
+        </div>
+        {% endif %}
+        <div>
+            <input type="text" name="subject" value="{{ formData.subject }}" required>
+        </div>
+        {% if errors.message is defined %}
+        <div class="error">
+            {{ errors.message }}
+        </div>
+        {% endif %}
+        <div>
+            <textarea name="message" cols="30" rows="10" value="{{ formData.message }}" required></textarea>
+        </div>
+        <div>
+            <button type="submit">Envoyer</button>
+        </div>
+    </form>
+</body>
+
+</html>
