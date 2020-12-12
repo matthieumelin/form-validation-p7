@@ -1,26 +1,39 @@
 <?php
 
 use Twig\Environment;
+use Twig\Extension\DebugExtension;
 use Twig\Loader\FilesystemLoader;
 
 // activation du système d'autoloading de Composer
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 // instanciation du chargeur de templates
-$loader = new FilesystemLoader(__DIR__.'/../templates');
+$loader = new FilesystemLoader(__DIR__ . '/../templates');
 
 // instanciation du moteur de template
-$twig = new Environment($loader);
+$twig = new Environment($loader, [
+    // activation du mode debug
+    'debug' => true,
+    // activation du mode de variables strictes
+    'strict_variables' => true,
+]);
 
-// form data
+// chargement de l'extension DebugExtension
+$twig->addExtension(new DebugExtension());
+
+// données du formulaire par défaut
 $formData = [
     'email' => '@gmail.com',
-    'subject' => '',
-    'message' => ''
+    'subject' => 'Votre sujet',
+    'message' => 'Votre message'
 ];
+
+// instanciation d'un tableau d'erreur
 $errors = [];
 
-if ($POST) {
+// si le bouton est presser
+if ($_POST) {
+    // on stock les données des inputs dans le tableau 
     foreach ($formData as $key => $value) {
         if (isset($_POST[$key])) {
             $formData[$key] = $_POST[$key];
@@ -43,12 +56,6 @@ if ($POST) {
         $errors['email'] = 'Merci de renseigner un email valide';
     }
 
-    if (!$errors) {
-        $url = '/';
-        header("Location: {$url}", true, 302);
-        exit();
-    }
-    
     if (empty($subject)) {
         $errors['subject'] = 'Merci de renseigner un sujet';
     } elseif (strlen($subject) < $length[0] || strlen($subject) > $length[1]) {
@@ -60,9 +67,40 @@ if ($POST) {
     } elseif (strlen($message) < $length[0] || strlen($subject) > $length[2]) {
         $errors['message'] = "Merci de renseigner un email dont la longueur est comprise entre {$length[0]} et {$length[1]}";
     }
+
+    // si aucune erreurs n'est en tableau
+    if (!$errors) {
+        // ajouter les valeures des inputs dans le tableau
+        $formData['email'] = $_POST['email'];
+        $formData['subject'] = $_POST['subject'];
+        $formData['message'] = $_POST['message'];
+        
+        // on les affiches
+        foreach ($formData as $key => $value) {
+            echo ' ' . $formData[$key];
+        }
+        // on envoie le mail au destinataire
+        // creer le transport
+        $transport = (new Swift_SmtpTransport('smtp.mailtrap.io', 2525))
+            ->setUsername('fcfd2e86af9027')
+            ->setPassword('790a00af466f05');
+
+        // creer le mail
+        $mailer = new Swift_Mailer($transport);
+
+        // creer le message
+        $message = (new Swift_Message())
+            ->setSubject('Nouveau message: ' . $formData['subject'])
+            ->setFrom([$formData['email']])
+            ->setTo(['matthieumelin62@gmail.com'])
+            ->setBody($formData['message']);
+
+        // envoyer le message
+        $mailer->send($message);
+    }
 }
 
-// display template render
+// rend les données vers la template
 echo $twig->render('contact.html.twig', [
     'errors' => $errors,
     'formData' => $formData,
