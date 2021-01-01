@@ -7,6 +7,9 @@ use Twig\Loader\FilesystemLoader;
 // activation du système d'autoloading de Composer
 require __DIR__ . '/../vendor/autoload.php';
 
+// démarrage de la session
+require "session-init.php";
+
 // instanciation du chargeur de templates
 $loader = new FilesystemLoader(__DIR__ . '/../templates');
 
@@ -82,8 +85,8 @@ if ($_POST) {
         // on envoie le mail au destinataire
         // creer le transport
         $transport = (new Swift_SmtpTransport('smtp.mailtrap.io', 2525))
-            ->setUsername('fcfd2e86af9027')
-            ->setPassword('790a00af466f05');
+            ->setUsername($_SESSION["mail_username"])
+            ->setPassword($_SESSION["mail_password"]);
 
         // creer le mail
         $mailer = new Swift_Mailer($transport);
